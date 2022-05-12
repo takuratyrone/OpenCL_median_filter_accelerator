@@ -21,7 +21,7 @@ in_image, __write_only image2d_t out_image, int windowSize)
         for(j=-halfWindow, jfilter=0; j<=halfWindow; j++, jfilter++)
         {
             pixelValue = read_imagef(in_image,image_sampler,(int2)(x+i, y+j));
-            oldPixels[index] = pixelValue.x;
+            oldPixels[index] = pixelValue.x + pixelValue.y + pixelValue.z;
             index++;
         }
     }
@@ -43,6 +43,6 @@ in_image, __write_only image2d_t out_image, int windowSize)
         totalNumber--;
     }
     //median is oldPixels[rank], update
-    pixelValue.x = oldPixels[rank];
+    pixelValue.x + pixelValue.y + pixelValue.z = oldPixels[rank];
     write_imagef(out_image, (int2)(x, y), pixelValue);
 }
