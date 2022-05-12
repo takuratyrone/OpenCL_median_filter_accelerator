@@ -20,20 +20,20 @@ in_image, __write_only image2d_t out_image, int windowSize)
     {
         for(j=-halfWindow, jfilter=0; j<=halfWindow; j++, jfilter++)
         {
-            pixelValue = read_imagef(in_image,image_sampler,(int2)(x+i, y+j));
-            oldPixels[index] = pixelValue.x + pixelValue.y + pixelValue.z;
+            pixelValue = read_imagef(in_image,image_sampler,(int2)(x+i, y+j)); //returns a pixel object at position (x+i,x+j) from the input image. the pixel object contains rgb values
+            oldPixels[index] = pixelValue.x + pixelValue.y + pixelValue.z; //storing the sum of the rgb values in an array.
             index++;
         }
     }
 
     // Find the rank-th element
     int totalNumber = windowSize*windowSize;
-    int rank = totalNumber/2 +1;
+    int rank = totalNumber/2 +1;  //median position
     for(int i=0; i< rank;++i)
     {
-        for(int j=0; j< totalNumber-1 ; ++j)
+        for(int j=0; j< totalNumber-1 ; ++j) 
         {
-            if(oldPixels[j] > oldPixels[j+1])
+            if(oldPixels[j] > oldPixels[j+1])  //sorting elements in ascending order.
             {
                 tmp = oldPixels[j];
                 oldPixels[j] = oldPixels[j+1];
