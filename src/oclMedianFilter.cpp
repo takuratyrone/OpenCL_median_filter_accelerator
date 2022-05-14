@@ -10,54 +10,9 @@
 #include<string>
 #include<cmath>
 #include <tuple>
+#include <vector>
 
 using namespace std;
-
-
-//creates a square matrix of dimensions Size X Size, with the values being the column number
-void createKnownSquareMatrix(int Size, int* squareMatrix, bool displayMatrices){
-
-	
-	for(int i = 0; i<Size; i++){
-		
-		for(int j = 0; j<Size; j++){
-			squareMatrix[i*Size+j] = j + 1;
-			if(displayMatrices){
-				cout<<squareMatrix[i*Size+j]<<"\t ";
-			}
-		}
-		if(displayMatrices){
-			cout<<"\n";
-		}
-	}
-	
-
-}
-
-
-//creates a random square matrix of dimensions Size X Size, with values ranging from 1-100
-void createRandomSquareMatrix(int Size, int* squareMatrix, bool displayMatrices){
-
-	
-	for(int i = 0; i<Size; i++){
-		
-		for(int j = 0; j<Size; j++){
-			squareMatrix[i*Size+j] = rand() % 100 + 1;
-			if(displayMatrices){
-				cout<<squareMatrix[i*Size+j]<<"\t ";
-			}
-		}
-		if(displayMatrices){
-			cout<<"\n";
-		}
-	}
-	
-
-}
-
-
-
-
 
 int main(void)
 {
@@ -65,26 +20,35 @@ int main(void)
 	clock_t start, end;  //Timers
 
 
-	//New code for prac 2.2
-	bool displayMatrices = true;
-	int Size = 5;
-	int countA = Size*Size;
-	int matrixA[countA];
-	createKnownSquareMatrix(Size,matrixA,displayMatrices);
+	int Size = 3;
+	int filterSize = Size*Size;
+	unsigned int resWidth;
+	unsigned int resHeight;
+	unsigned int maxValue;
+
+	std:: string form;
+	std:: string comment;
+
+	std::string line;
+    std::ifstream image("small.pgm",std::ios::binary);
+    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
+
+	getline(image, form);
+	getline(image, comment);
+	
+	image >> resWidth;
+	image >> resHeight;
+	cout << "Number of Pixels: "<<resWidth*resHeight<<"\n";
+
+	image >> maxValue;
+
+	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
+		image >> buffer[i];
+	}
+	
 	cout<<"Number of elements in matrix 1: "<<countA<<"\n";
 	cout<<"Dimensions of matrix 1: "<<Size<<"x"<<Size<<"\n";
 	cout<<"Matrix 1 pointer: "<<matrixA<<"\n";
-
-	
-	
-	int countB = Size*Size;
-	int matrixB[countB];
-	createKnownSquareMatrix(Size, matrixB,displayMatrices);
-	//createRandomSquareMatrix(Size, matrixB, displayMatrices);
-	cout<<"Number of elements in matrix 2: "<<countB<<"\n";
-	cout<<"Dimensions of matrix 2: "<<Size<<"x"<<Size<<"\n";
-	cout<<"Matrix 2 pointer: "<<matrixB<<"\n";
-
 	
 	/* OpenCL structures you need to program*/
 	//cl_device_id device; step 1 and 2 
@@ -98,7 +62,7 @@ int main(void)
 	 
 	//Initialize Buffers, memory space the allows for communication between the host and the target device
 	//TODO: initialize matrixA_buffer, matrixB_buffer and output_buffer
-	cl_mem matrixA_buffer, matrixB_buffer, output_buffer;
+	cl_mem inImage_buffer, outImage_buffer, bufferFilter;
 
 	//***step 1*** Get the platform you want to use
 	//cl_int clGetPlatformIDs(cl_uint num_entries,
@@ -167,7 +131,7 @@ int main(void)
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
-	program_handle = fopen("OpenCL/Kernel.cl", "r");
+	program_handle = fopen("Opencl/medianFilter.cl", "r");
 
 	//get program size
 	size_t program_size;//, log_size;
@@ -214,7 +178,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 
 	//TODO: select the kernel you are running
-	cl_kernel kernel = clCreateKernel(program, "matrixMultiplication", &err);
+	cl_kernel kernel = clCreateKernel(program, "median_filter_kernel", &err);
 	//------------------------------------------------------------------------
 	
 	//***Step 8*** create command queue to the target device. This is the queue that the kernels get dispatched too, to get the the desired device.
@@ -231,16 +195,17 @@ int main(void)
 	//***Step 9*** create data buffers for memory management between the host and the target device
 	//TODO: set global_size, local_size and num_groups, in order to control the number of work item in each work group
 	
-	size_t global_size = countA; //total number of work items
-	size_t local_size = Size; //Size of each work group
-	cl_int num_groups = global_size/local_size; //number of work groups needed
-	cl_int widthA = Size;
-	cl_int numElem = Size*Size;
+	size_t global_size = resWidth*resHeight; //total number of work items
+	size_t local_size = resWidth; //Size of each work group
+	cl_int num_groups = resHeight; //number of work groups needed
+	cl_int windowSize = Size;
+	//cl_int numElem = Size*Size;
 
 	//already got matrixA and matrixB
 	//TODO: initialize the output array
 
-   	int output[global_size]; //output array
+   	//int output[global_size]; //output array
+	float out_image;
 
 	
 	//Buffer (memory block) that both the host and target device can access 
@@ -251,12 +216,17 @@ int main(void)
 	//			cl_int* errcode_ret);
 	
 	//TODO: create matrixA_buffer, matrixB_buffer and output_buffer, with clCreateBuffer()
+	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
+	//inImage_buffer = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixA), &format, &err);
+	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
+	inImage_buffer = clCreateImage2D(context, 0, &format, resWidth, resHeight, 0, NULL, NULL);
+	outImage_buffer = clCreateImage2D(context, 0, &format, resWidth, resHeight, 0, NULL, NULL);
+	//outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
+	bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 
-	matrixA_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixA), &matrixA, &err);
-	matrixB_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	
-	output_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), output, &err);
-
+	size_t origin[3] = {0, 0, 0};
+	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, in_image, 0, NULL, NULL);
+	clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), filter, 0, NULL, NULL);
 	//------------------------------------------------------------------------
 
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
@@ -266,10 +236,10 @@ int main(void)
 	//				const void *arg_value)
 	
 	//TODO: create the arguments for the kernel. Note you can create a local buffer only on the GPU as follows: clSetKernelArg(kernel, argNum, size, NULL);
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &matrixA_buffer);
-	clSetKernelArg(kernel, 1, sizeof(cl_mem), &matrixB_buffer);
-	clSetKernelArg(kernel, 2, sizeof(cl_mem), &output_buffer);
-	clSetKernelArg(kernel, 3, sizeof(cl_int), &widthA);
+	clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer);
+	clSetKernelArg(kernel, 1, sizeof(cl_mem), &outImage_buffer);
+	clSetKernelArg(kernel, 2, sizeof(cl_int), &windowSize);
+	//clSetKernelArg(kernel, 3, sizeof(cl_int), &widthA);
 	//------------------------------------------------------------------------
 
 	
@@ -288,7 +258,7 @@ int main(void)
 	//					cl_event *event)
 	
 	//end = clock(); //data transfer overhead
-	start = clock();  //data processing 
+	//start = clock();  //data processing 
 	cl_int err4 = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &local_size, 0, NULL, NULL); 
 	//system("nvidia-smi");
 	
@@ -298,8 +268,8 @@ int main(void)
 	//------------------------------------------------------------------------
 
 	//***Step 12*** Allows the host to read from the buffer object 
-	err = clEnqueueReadBuffer(queue, output_buffer, CL_TRUE, 0, sizeof(output), output, 0, NULL, NULL);
-	
+	//err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(out_image), out_image, 0, NULL, NULL);
+	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
 	
 	//This command stops the program here until everything in the queue has been run
 	clFinish(queue);
@@ -309,7 +279,7 @@ int main(void)
 	//***Step 13*** Check that the host was able to retrieve the output data from the output buffer
 	//system("ls");
 	printf ("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
-	if(displayMatrices){
+	/*if(displayMatrices){
 		printf("\nOutput in the output_buffer \n");
 		for(int j=0; j<countA; j++) {
 			printf("%i \t " ,output[j]);
@@ -317,16 +287,16 @@ int main(void)
 				printf("\n");
 			}
 		}
-	}
+	}*/
 	
 	
 	//------------------------------------------------------------------------
 
 	//***Step 14*** Deallocate resources	
 	clReleaseKernel(kernel);
-	clReleaseMemObject(output_buffer);
-	clReleaseMemObject(matrixA_buffer);
-	clReleaseMemObject(matrixB_buffer);
+	clReleaseMemObject(outImage_buffer);
+	clReleaseMemObject(inImage_buffer);
+	//clReleaseMemObject(matrixB_buffer);
 	clReleaseCommandQueue(queue);
 	clReleaseProgram(program);
 	clReleaseContext(context);

@@ -12,7 +12,7 @@ in_image, __write_only image2d_t out_image, int windowSize)
     int halfWindow = windowSize/2;
     float4 pixelValue;
     int i, j, ifilter, jfilter;
-    float oldPixels[9]; float tmp;
+    float oldPixels[windowSize*windowSize]; float tmp;
     int index =0;
 
     //Load the window in oldPixels
@@ -21,7 +21,7 @@ in_image, __write_only image2d_t out_image, int windowSize)
         for(j=-halfWindow, jfilter=0; j<=halfWindow; j++, jfilter++)
         {
             pixelValue = read_imagef(in_image,image_sampler,(int2)(x+i, y+j));
-            oldPixels[index] = pixelValue.x + pixelValue.y + pixelValue.z;
+            oldPixels[index] = ((pixelValue.x + pixelValue.y + pixelValue.z)*pixelValue.w)/256;
             index++;
         }
     }
