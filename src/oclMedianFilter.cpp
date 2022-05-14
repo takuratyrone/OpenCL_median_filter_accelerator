@@ -1,6 +1,5 @@
 //code
 
-
 //Author: Christopher Hill For the EEE4120F course at UCT
 
 #include<stdio.h>
@@ -30,7 +29,7 @@ int main(void)
 	std:: string comment;
 
 	std::string line;
-    std::ifstream image("small.pgm",std::ios::binary);
+    std::ifstream image("sloan_image.pgm",std::ios::binary);
     std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
 
 	getline(image, form);
@@ -46,9 +45,6 @@ int main(void)
 		image >> buffer[i];
 	}
 	
-	cout<<"Number of elements in matrix 1: "<<countA<<"\n";
-	cout<<"Dimensions of matrix 1: "<<Size<<"x"<<Size<<"\n";
-	cout<<"Matrix 1 pointer: "<<matrixA<<"\n";
 	
 	/* OpenCL structures you need to program*/
 	//cl_device_id device; step 1 and 2 
@@ -217,16 +213,27 @@ int main(void)
 	
 	//TODO: create matrixA_buffer, matrixB_buffer and output_buffer, with clCreateBuffer()
 	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
-	//inImage_buffer = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixA), &format, &err);
+        
+        cl_image_desc image_desc;
+        image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
+        image_desc.image_width = resWidth;
+        image_desc.image_height = resHeight;
+        image_desc.image_array_size = 1;
+        image_desc.image_row_pitch = 0;
+        image_desc.image_slice_pitch = 0;
+        image_desc.num_mip_levels = 0;
+        image_desc.num_samples = 0;
+        image_desc.buffer = NULL;
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage2D(context, 0, &format, resWidth, resHeight, 0, NULL, NULL);
-	outImage_buffer = clCreateImage2D(context, 0, &format, resWidth, resHeight, 0, NULL, NULL);
+	inImage_buffer = clCreateImage(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL); // could not put host pointer
+	outImage_buffer = clCreateImage(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL);
+        size_t region[] = {resWidth, resHeight, 1};
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
 	bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 
 	size_t origin[3] = {0, 0, 0};
-	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, in_image, 0, NULL, NULL);
-	clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), filter, 0, NULL, NULL);
+	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &inImage_buffer, 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &bufferFilter, 0, NULL, NULL);
 	//------------------------------------------------------------------------
 
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
@@ -269,7 +276,7 @@ int main(void)
 
 	//***Step 12*** Allows the host to read from the buffer object 
 	//err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(out_image), out_image, 0, NULL, NULL);
-	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
+	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, &outImage_buffer, 0, NULL, NULL);
 	
 	//This command stops the program here until everything in the queue has been run
 	clFinish(queue);
