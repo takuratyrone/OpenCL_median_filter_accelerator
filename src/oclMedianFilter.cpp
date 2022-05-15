@@ -30,25 +30,25 @@ int main(void)
 	std:: string comment;
 
 	std::string line;
-    std::ifstream image("small.pgm",std::ios::binary);
-    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
+    std::ifstream in_image("sloan_image.pgm",std::ios::binary);
+    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(in_image), {});
 
-	getline(image, form);
-	getline(image, comment);
+	getline(in_image, form);
+	getline(in_image, comment);
 	
-	image >> resWidth;
-	image >> resHeight;
+	in_image >> resWidth;
+	in_image >> resHeight;
 	cout << "Number of Pixels: "<<resWidth*resHeight<<"\n";
 
-	image >> maxValue;
+	in_image >> maxValue;
 
 	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
-		image >> buffer[i];
+		in_image >> buffer[i];
 	}
 	
-	cout<<"Number of elements in matrix 1: "<<countA<<"\n";
+	/*cout<<"Number of elements in matrix 1: "<<countA<<"\n";
 	cout<<"Dimensions of matrix 1: "<<Size<<"x"<<Size<<"\n";
-	cout<<"Matrix 1 pointer: "<<matrixA<<"\n";
+	cout<<"Matrix 1 pointer: "<<matrixA<<"\n";*/
 	
 	/* OpenCL structures you need to program*/
 	//cl_device_id device; step 1 and 2 
@@ -225,8 +225,9 @@ int main(void)
 	bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 
 	size_t origin[3] = {0, 0, 0};
+	size_t region[3] = {resWidth, resHeight, 1};
 	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, in_image, 0, NULL, NULL);
-	clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), filter, 0, NULL, NULL);
+	clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), Size, 0, NULL, NULL);
 	//------------------------------------------------------------------------
 
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
