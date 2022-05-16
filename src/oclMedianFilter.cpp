@@ -1,12 +1,12 @@
 //code
 
-
 //Author: Christopher Hill For the EEE4120F course at UCT
 
 #include<stdio.h>
 #include<CL/cl.h>
 #include<iostream>
 #include<fstream>
+#include<sstream>
 #include<string>
 #include<cmath>
 #include <tuple>
@@ -26,12 +26,48 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	std:: string form;
+	ifstream infile("sloan_image.pgm");
+	stringstream ss;
+	string inputLine = "";
+
+	getline(infile, inputLine);
+	if(inputLine.compare("P2") != 0) cerr << "Version error" << endl;
+ 	else cout << "Version : " << inputLine << endl;
+
+	getline(infile,inputLine);
+  	cout << "Comment : " << inputLine << endl;
+
+	ss << infile.rdbuf();
+	// Third line : size
+	ss >> resHeight >> resWidth;
+	cout << resHeight << " columns and " << resWidth << " rows" << endl;
+
+	float array[resHeight][resWidth];
+
+	for(int row = 0; row < resHeight; ++row)
+    for (int col = 0; col < resWidth; ++col) ss >> array[row][col];
+
+	// Now print the array to see the result
+	/*for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < resWidth; ++col) {
+		cout << array[row][col] << " ";
+		}
+		cout << endl;
+	}*/
+	infile.close();
+
+
+	/*std:: string form;
 	std:: string comment;
 
 	std::string line;
+<<<<<<< HEAD
     std::ifstream in_image("sloan_image.pgm",std::ios::binary);
     std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(in_image), {});
+=======
+    std::ifstream image("sloan_image.pgm",std::ios::binary);
+    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
+>>>>>>> dean
 
 	getline(in_image, form);
 	getline(in_image, comment);
@@ -43,12 +79,18 @@ int main(void)
 	in_image >> maxValue;
 
 	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
+<<<<<<< HEAD
 		in_image >> buffer[i];
 	}
 	
 	/*cout<<"Number of elements in matrix 1: "<<countA<<"\n";
 	cout<<"Dimensions of matrix 1: "<<Size<<"x"<<Size<<"\n";
 	cout<<"Matrix 1 pointer: "<<matrixA<<"\n";*/
+=======
+		image >> buffer[i];
+	}*/
+	
+>>>>>>> dean
 	
 	/* OpenCL structures you need to program*/
 	//cl_device_id device; step 1 and 2 
@@ -114,30 +156,42 @@ int main(void)
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
 	}
 	printf("Device ID = %i\n",err);
+<<<<<<< HEAD
+	printf("hello");
 
+=======
+        printf("Dhinzalo");
+>>>>>>> 1254deca261d1ba19d7bd21a17c4e17cb0e65dc7
 	//------------------------------------------------------------------------
 	
 	//***Step 3*** creates a context that allows devices to send and receive kernels and transfer data
 	//cl_context clCreateContext(cl_context_properties *properties,
 	//				cl_uint num_devices,
-	//				const cl_device_id *devices,
 	//				void *pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data),
 	//				void *user_data,cl_int *errcode_ret)
+        printf("Dean 1");
 	cl_context context; //This is your contextID, the line below must just run
+	printf("cl_context");
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-
+<<<<<<< HEAD
+	printf("context set");
+=======
+        printf("Dean 2");
+ 
+>>>>>>> 1254deca261d1ba19d7bd21a17c4e17cb0e65dc7
 	//------------------------------------------------------------------------
 
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
 	program_handle = fopen("Opencl/medianFilter.cl", "r");
-
+	printf("program_handle");
 	//get program size
 	size_t program_size;//, log_size;
 	fseek(program_handle, 0, SEEK_END);
 	program_size = ftell(program_handle);
 	rewind(program_handle);
+	printf("rewind");
 
 	//sort buffer out
 	char *program_buffer;//, *program_log;
@@ -145,7 +199,12 @@ int main(void)
 	program_buffer[program_size] = '\0';
 	fread(program_buffer, sizeof(char), program_size, program_handle);
 	fclose(program_handle);
+<<<<<<< HEAD
+	printf("fclose");
    	
+=======
+   	printf("Dean");
+>>>>>>> 1254deca261d1ba19d7bd21a17c4e17cb0e65dc7
 	//------------------------------------------------------------------------
 
 	//***Step 5*** create program from source because the kernel is in a separate file 'kernel.cl', therefore the compiler must run twice once on main and once on kernel
@@ -156,7 +215,7 @@ int main(void)
 	//						cl_int *errcode_ret)	
 	
 	cl_program program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, NULL); //this compiles the kernels code
-
+	printf("cl_program");
 	//------------------------------------------------------------------------
 
 	//***Step 6*** build the program, this compiles the source code from above for the devices that the code has to run on (ie GPU or CPU)
@@ -215,29 +274,42 @@ int main(void)
 	//			void* host_ptr,
 	//			cl_int* errcode_ret);
 	
-	//TODO: create matrixA_buffer, matrixB_buffer and output_buffer, with clCreateBuffer()
+	//TODO: Allocate OpenCl imge memory buffer
 	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
-	//inImage_buffer = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixA), &format, &err);
+        cl_image_desc image_desc;
+        image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
+        image_desc.image_width = resWidth;
+        image_desc.image_height = resHeight;
+        image_desc.image_array_size = 1;
+        image_desc.image_row_pitch = 0;
+        image_desc.image_slice_pitch = 0;
+        image_desc.num_mip_levels = 0;
+        image_desc.num_samples = 0;
+        image_desc.buffer = NULL;
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage2D(context, 0, &format, resWidth, resHeight, 0, NULL, NULL);
-	outImage_buffer = clCreateImage2D(context, 0, &format, resWidth, resHeight, 0, NULL, NULL);
-	//outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
-	bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
-
+	inImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL); // could not put host pointer
+	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL);
+        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
+	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 	size_t origin[3] = {0, 0, 0};
+<<<<<<< HEAD
 	size_t region[3] = {resWidth, resHeight, 1};
 	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, in_image, 0, NULL, NULL);
 	clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), Size, 0, NULL, NULL);
+=======
+        size_t region[] = {resWidth, resHeight, 1};
+        clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &inImage_buffer, 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &inImage_buffer, 0, NULL, NULL);
+>>>>>>> dean
 	//------------------------------------------------------------------------
 
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
 	// cl_int clSetKernelArg (cl_kernel kernel, 
 	//				cl_uint arg_index, 
-	//				size_t arg_size, 
 	//				const void *arg_value)
 	
 	//TODO: create the arguments for the kernel. Note you can create a local buffer only on the GPU as follows: clSetKernelArg(kernel, argNum, size, NULL);
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer);
+	//clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer );
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &outImage_buffer);
 	clSetKernelArg(kernel, 2, sizeof(cl_int), &windowSize);
 	//clSetKernelArg(kernel, 3, sizeof(cl_int), &widthA);
@@ -270,7 +342,7 @@ int main(void)
 
 	//***Step 12*** Allows the host to read from the buffer object 
 	//err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(out_image), out_image, 0, NULL, NULL);
-	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
+	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, &outImage_buffer, 0, NULL, NULL);
 	
 	//This command stops the program here until everything in the queue has been run
 	clFinish(queue);
