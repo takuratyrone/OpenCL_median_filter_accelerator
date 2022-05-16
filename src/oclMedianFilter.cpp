@@ -6,6 +6,7 @@
 #include<CL/cl.h>
 #include<iostream>
 #include<fstream>
+#include<sstream>
 #include<string>
 #include<cmath>
 #include <tuple>
@@ -25,7 +26,38 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	std:: string form;
+	ifstream infile("sloan_image.pgm");
+	stringstream ss;
+	string inputLine = "";
+
+	getline(infile, inputLine);
+	if(inputLine.compare("P2") != 0) cerr << "Version error" << endl;
+ 	else cout << "Version : " << inputLine << endl;
+
+	getline(infile,inputLine);
+  	cout << "Comment : " << inputLine << endl;
+
+	ss << infile.rdbuf();
+	// Third line : size
+	ss >> resHeight >> resWidth;
+	cout << resHeight << " columns and " << resWidth << " rows" << endl;
+
+	float array[resHeight][resWidth];
+
+	for(int row = 0; row < resHeight; ++row)
+    for (int col = 0; col < resWidth; ++col) ss >> array[row][col];
+
+	// Now print the array to see the result
+	/*for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < resWidth; ++col) {
+		cout << array[row][col] << " ";
+		}
+		cout << endl;
+	}*/
+	infile.close();
+
+
+	/*std:: string form;
 	std:: string comment;
 
 	std::string line;
@@ -43,7 +75,7 @@ int main(void)
 
 	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
 		image >> buffer[i];
-	}
+	}*/
 	
 	
 	/* OpenCL structures you need to program*/
