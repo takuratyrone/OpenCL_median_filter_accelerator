@@ -110,18 +110,19 @@ int main(void)
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
 	}
 	printf("Device ID = %i\n",err);
-
+        printf("Dhinzalo");
 	//------------------------------------------------------------------------
 	
 	//***Step 3*** creates a context that allows devices to send and receive kernels and transfer data
 	//cl_context clCreateContext(cl_context_properties *properties,
 	//				cl_uint num_devices,
-	//				const cl_device_id *devices,
 	//				void *pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data),
 	//				void *user_data,cl_int *errcode_ret)
+        printf("Dean 1");
 	cl_context context; //This is your contextID, the line below must just run
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-
+        printf("Dean 2");
+ 
 	//------------------------------------------------------------------------
 
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
@@ -141,7 +142,7 @@ int main(void)
 	program_buffer[program_size] = '\0';
 	fread(program_buffer, sizeof(char), program_size, program_handle);
 	fclose(program_handle);
-   	
+   	printf("Dean");
 	//------------------------------------------------------------------------
 
 	//***Step 5*** create program from source because the kernel is in a separate file 'kernel.cl', therefore the compiler must run twice once on main and once on kernel
@@ -211,9 +212,8 @@ int main(void)
 	//			void* host_ptr,
 	//			cl_int* errcode_ret);
 	
-	//TODO: create matrixA_buffer, matrixB_buffer and output_buffer, with clCreateBuffer()
+	//TODO: Allocate OpenCl imge memory buffer
 	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
-        
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
         image_desc.image_width = resWidth;
@@ -225,25 +225,23 @@ int main(void)
         image_desc.num_samples = 0;
         image_desc.buffer = NULL;
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL); // could not put host pointer
-	outImage_buffer = clCreateImage(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL);
-        size_t region[] = {resWidth, resHeight, 1};
-	//outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
-	bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
-
+	inImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL); // could not put host pointer
+	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,NULL, NULL);
+        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
+	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 	size_t origin[3] = {0, 0, 0};
-	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &inImage_buffer, 0, NULL, NULL);
-        clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &bufferFilter, 0, NULL, NULL);
+        size_t region[] = {resWidth, resHeight, 1};
+        clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &inImage_buffer, 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &inImage_buffer, 0, NULL, NULL);
 	//------------------------------------------------------------------------
 
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
 	// cl_int clSetKernelArg (cl_kernel kernel, 
 	//				cl_uint arg_index, 
-	//				size_t arg_size, 
 	//				const void *arg_value)
 	
 	//TODO: create the arguments for the kernel. Note you can create a local buffer only on the GPU as follows: clSetKernelArg(kernel, argNum, size, NULL);
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer);
+	//clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer );
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &outImage_buffer);
 	clSetKernelArg(kernel, 2, sizeof(cl_int), &windowSize);
 	//clSetKernelArg(kernel, 3, sizeof(cl_int), &widthA);
