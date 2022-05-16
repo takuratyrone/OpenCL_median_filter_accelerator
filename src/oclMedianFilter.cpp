@@ -110,6 +110,7 @@ int main(void)
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
 	}
 	printf("Device ID = %i\n",err);
+	printf("hello");
 
 	//------------------------------------------------------------------------
 	
@@ -120,20 +121,22 @@ int main(void)
 	//				void *pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data),
 	//				void *user_data,cl_int *errcode_ret)
 	cl_context context; //This is your contextID, the line below must just run
+	printf("cl_context");
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-
+	printf("context set");
 	//------------------------------------------------------------------------
 
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
 	program_handle = fopen("Opencl/medianFilter.cl", "r");
-
+	printf("program_handle");
 	//get program size
 	size_t program_size;//, log_size;
 	fseek(program_handle, 0, SEEK_END);
 	program_size = ftell(program_handle);
 	rewind(program_handle);
+	printf("rewind");
 
 	//sort buffer out
 	char *program_buffer;//, *program_log;
@@ -141,6 +144,7 @@ int main(void)
 	program_buffer[program_size] = '\0';
 	fread(program_buffer, sizeof(char), program_size, program_handle);
 	fclose(program_handle);
+	printf("fclose");
    	
 	//------------------------------------------------------------------------
 
@@ -152,7 +156,7 @@ int main(void)
 	//						cl_int *errcode_ret)	
 	
 	cl_program program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, NULL); //this compiles the kernels code
-
+	printf("cl_program");
 	//------------------------------------------------------------------------
 
 	//***Step 6*** build the program, this compiles the source code from above for the devices that the code has to run on (ie GPU or CPU)
