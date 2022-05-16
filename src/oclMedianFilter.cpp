@@ -61,36 +61,22 @@ int main(void)
 	std:: string comment;
 
 	std::string line;
-<<<<<<< HEAD
-    std::ifstream in_image("sloan_image.pgm",std::ios::binary);
-    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(in_image), {});
-=======
     std::ifstream image("sloan_image.pgm",std::ios::binary);
     std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
->>>>>>> dean
 
-	getline(in_image, form);
-	getline(in_image, comment);
+	getline(image, form);
+	getline(image, comment);
 	
-	in_image >> resWidth;
-	in_image >> resHeight;
+	image >> resWidth;
+	image >> resHeight;
 	cout << "Number of Pixels: "<<resWidth*resHeight<<"\n";
 
-	in_image >> maxValue;
+	image >> maxValue;
 
 	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
-<<<<<<< HEAD
-		in_image >> buffer[i];
-	}
-	
-	/*cout<<"Number of elements in matrix 1: "<<countA<<"\n";
-	cout<<"Dimensions of matrix 1: "<<Size<<"x"<<Size<<"\n";
-	cout<<"Matrix 1 pointer: "<<matrixA<<"\n";*/
-=======
 		image >> buffer[i];
 	}*/
 	
->>>>>>> dean
 	
 	/* OpenCL structures you need to program*/
 	//cl_device_id device; step 1 and 2 
@@ -156,12 +142,7 @@ int main(void)
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
 	}
 	printf("Device ID = %i\n",err);
-<<<<<<< HEAD
-	printf("hello");
-
-=======
-        printf("Dhinzalo");
->>>>>>> 1254deca261d1ba19d7bd21a17c4e17cb0e65dc7
+        printf("Dhinzalo\n");
 	//------------------------------------------------------------------------
 	
 	//***Step 3*** creates a context that allows devices to send and receive kernels and transfer data
@@ -169,29 +150,24 @@ int main(void)
 	//				cl_uint num_devices,
 	//				void *pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data),
 	//				void *user_data,cl_int *errcode_ret)
-        printf("Dean 1");
+        printf("Dean 1\n");
 	cl_context context; //This is your contextID, the line below must just run
-	printf("cl_context");
+	printf("cl_context\n");
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-<<<<<<< HEAD
-	printf("context set");
-=======
-        printf("Dean 2");
- 
->>>>>>> 1254deca261d1ba19d7bd21a17c4e17cb0e65dc7
+	printf("context set\n");
 	//------------------------------------------------------------------------
 
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
 	program_handle = fopen("Opencl/medianFilter.cl", "r");
-	printf("program_handle");
+	printf("program_handle\n");
 	//get program size
 	size_t program_size;//, log_size;
 	fseek(program_handle, 0, SEEK_END);
 	program_size = ftell(program_handle);
 	rewind(program_handle);
-	printf("rewind");
+	printf("rewind\n");
 
 	//sort buffer out
 	char *program_buffer;//, *program_log;
@@ -199,12 +175,8 @@ int main(void)
 	program_buffer[program_size] = '\0';
 	fread(program_buffer, sizeof(char), program_size, program_handle);
 	fclose(program_handle);
-<<<<<<< HEAD
-	printf("fclose");
+	printf("fclose\n");
    	
-=======
-   	printf("Dean");
->>>>>>> 1254deca261d1ba19d7bd21a17c4e17cb0e65dc7
 	//------------------------------------------------------------------------
 
 	//***Step 5*** create program from source because the kernel is in a separate file 'kernel.cl', therefore the compiler must run twice once on main and once on kernel
@@ -215,7 +187,7 @@ int main(void)
 	//						cl_int *errcode_ret)	
 	
 	cl_program program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, NULL); //this compiles the kernels code
-	printf("cl_program");
+	printf("cl_program\n");
 	//------------------------------------------------------------------------
 
 	//***Step 6*** build the program, this compiles the source code from above for the devices that the code has to run on (ie GPU or CPU)
@@ -238,6 +210,7 @@ int main(void)
 
 	//TODO: select the kernel you are running
 	cl_kernel kernel = clCreateKernel(program, "median_filter_kernel", &err);
+	printf("cl_kernel\n");
 	//------------------------------------------------------------------------
 	
 	//***Step 8*** create command queue to the target device. This is the queue that the kernels get dispatched too, to get the the desired device.
@@ -248,6 +221,7 @@ int main(void)
 	
 	//start = clock();
 	cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, 0, NULL);
+	printf("cl_command\n");
 
 	//------------------------------------------------------------------------
 
@@ -256,15 +230,18 @@ int main(void)
 	
 	size_t global_size = resWidth*resHeight; //total number of work items
 	size_t local_size = resWidth; //Size of each work group
+	size_t im_height = resHeight;
 	cl_int num_groups = resHeight; //number of work groups needed
 	cl_int windowSize = Size;
+	printf("cl_int\n");
 	//cl_int numElem = Size*Size;
 
 	//already got matrixA and matrixB
 	//TODO: initialize the output array
 
    	//int output[global_size]; //output array
-	float out_image;
+	float out_image[resHeight][resWidth];
+	printf("out_image");
 
 	
 	//Buffer (memory block) that both the host and target device can access 
@@ -278,8 +255,8 @@ int main(void)
 	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
-        image_desc.image_width = resWidth;
-        image_desc.image_height = resHeight;
+        image_desc.image_width = local_size;
+        image_desc.image_height = im_height;
         image_desc.image_array_size = 1;
         image_desc.image_row_pitch = 0;
         image_desc.image_slice_pitch = 0;
@@ -292,15 +269,9 @@ int main(void)
         //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
 	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 	size_t origin[3] = {0, 0, 0};
-<<<<<<< HEAD
-	size_t region[3] = {resWidth, resHeight, 1};
-	clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, in_image, 0, NULL, NULL);
-	clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), Size, 0, NULL, NULL);
-=======
         size_t region[] = {resWidth, resHeight, 1};
         clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &inImage_buffer, 0, NULL, NULL);
         clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &inImage_buffer, 0, NULL, NULL);
->>>>>>> dean
 	//------------------------------------------------------------------------
 
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
