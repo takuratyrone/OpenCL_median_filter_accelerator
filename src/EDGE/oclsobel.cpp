@@ -248,22 +248,23 @@ int main(void)
 	//			cl_int* errcode_ret);
 	
 	//TODO: Allocate OpenCl imge memory buffer
-	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
-        cl_image_desc image_desc;
-        image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
-        image_desc.image_width = local_size;
-        image_desc.image_height = im_height;
-        image_desc.image_array_size = 1;
-        image_desc.image_row_pitch = 0;
-        image_desc.image_slice_pitch = 0;
-        image_desc.num_mip_levels = 0;
-        image_desc.num_samples = 0;
-        image_desc.buffer = NULL;
+	//static const cl_image_format format = { CL_RGBA, CL_FLOAT };
+        //cl_image_desc image_desc;
+        //image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
+        //image_desc.image_width = local_size;
+        //image_desc.image_height = im_height;
+        //image_desc.image_array_size = 1;
+        //image_desc.image_row_pitch = 0;
+        //image_desc.image_slice_pitch = 0;
+        //image_desc.num_mip_levels = 0;
+        //image_desc.num_samples = 0;
+        //image_desc.buffer = NULL;
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
-	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&out_image, &err);
-        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
-	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
+	//inImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
+	//outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&out_image, &err);
+        inImage_buffer =  clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, im_height*resWidth, out_image, &err);
+        outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, , out_image, &err);
+	theta = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
 	size_t origin[3] = {0, 0, 0};
         size_t region[3] = {resWidth, resHeight, 1};
         clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &array, 0, NULL, NULL);
@@ -343,3 +344,5 @@ int main(void)
 
 	return 0;
 }
+
+
