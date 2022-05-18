@@ -85,10 +85,10 @@ __kernel void sobelFilter(
 		}
 		
 		// Convert to grayscale using luminosity method
-		uint Gray = (OutColor.x * 0.2126) + (OutColor.y * 0.7152) + (OutColor.z * 0.0722);
-
+		uint Gray = OutColor.x;//(OutColor.x * 0.2126) + (OutColor.y * 0.7152) + (OutColor.z * 0.0722);
+		printf("Gray: %i\n", Gray);
 		// Write the RGB value to the output image
-		write_imageui(outputImage, ImageCoordinate, (uint4)(Gray, Gray, Gray, 0));
+		write_imageui(outputImage, ImageCoordinate, Gray);
 	}		
 }
 
