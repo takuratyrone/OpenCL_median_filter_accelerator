@@ -4,7 +4,7 @@ __constant sampler_t image_sampler = CLK_NORMALIZED_COORDS_FALSE
 | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
 __kernel void median_filter_kernel(__read_only image2d_t
-in_image, __write_only image2d_t out_image, int windowSize)
+in_image, __read_write image2d_t out_image, int windowSize)
 {
 
     unsigned int x = get_global_id(0);
@@ -35,7 +35,7 @@ in_image, __write_only image2d_t out_image, int windowSize)
                 oldPixels[j] = oldPixels[j+1];
                 oldPixels[j+1] = tmp;
             }
-        }
+        } 
         totalNumber--;
     }
     //median is oldPixels[rank], update
