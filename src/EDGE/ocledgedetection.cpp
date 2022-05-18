@@ -13,6 +13,31 @@
 #include <vector>
 
 using namespace std;
+void displayImageInt(unsigned int *in, int rows, int cols)
+
+{
+
+	for ( int i = 0; i < rows; i++)
+
+	{	
+
+		for ( int j = 0; j < cols; j++)
+
+		{
+
+			printf("%d ", in[ i * cols + j ]);
+
+		}
+
+		printf("\n");
+
+	}
+
+	
+
+	printf("\n");
+
+}
 
 int main(void)
 {
@@ -86,7 +111,7 @@ int main(void)
 	 
 	//Initialize Buffers, memory space the allows for communication between the host and the target device
 	//TODO: initialize matrixA_buffer, matrixB_buffer and output_buffer
-	cl_mem inImage_buffer, outImage_buffer, bufferFilter;
+	cl_mem gaussianInImage_buffer, gaussianOutImage_buffer, bufferFilter;
 
 	//***step 1*** Get the platform you want to use
 	//cl_int clGetPlatformIDs(cl_uint num_entries,
@@ -156,7 +181,7 @@ int main(void)
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
-	program_handle = fopen("Opencl/medianFilter.cl", "r");
+	program_handle = fopen("OpenCl/gaussian.cl", "r");
 	printf("program_handle\n");
 	//get program size
 	size_t program_size;//, log_size;
@@ -205,7 +230,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 
 	//TODO: select the kernel you are running
-	cl_kernel kernel = clCreateKernel(program, "median_filter_kernel", &err);
+	cl_kernel kernel = clCreateKernel(program, "gaussian", &err);
 	printf("cl_kernel\n");
 	//------------------------------------------------------------------------
 	
@@ -236,10 +261,12 @@ int main(void)
 	//TODO: initialize the output array
 
    	//int output[global_size]; //output array
-	float out_image[resHeight][resWidth];
-	printf("out_image");
+	//float out_image[resHeight][resWidth];
+	//printf("out_image");
+	int sizeInBytes = resHeight *resWidth * sizeof(unsigned int);
+        unsigned int *out_image;
+	out_image = (unsigned int *)malloc(sizeInBytes);
 
-	
 	//Buffer (memory block) that both the host and target device can access 
 	//cl_mem clCreateBuffer(cl_context context,
 	//			cl_mem_flags flags,
@@ -260,8 +287,8 @@ int main(void)
         image_desc.num_samples = 0;
         image_desc.buffer = NULL;
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
-	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&out_image, &err);
+	gaussiaInImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
+	gaussianOutImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&out_image, &err);
         //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
 	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 	size_t origin[3] = {0, 0, 0};
@@ -269,7 +296,7 @@ int main(void)
         clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &array, 0, NULL, NULL);
         //clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &inImage_buffer, 0, NULL, NULL);
 	//------------------------------------------------------------------------
-
+             
 	//***Step 10*** create the arguments for the kernel (link these to the buffers set above, using the pointers for the respective buffers)
 	// cl_int clSetKernelArg (cl_kernel kernel, 
 	//				cl_uint arg_index, 
@@ -309,13 +336,13 @@ int main(void)
 
 	//***Step 12*** Allows the host to read from the buffer object 
 	//err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(out_image), out_image, 0, NULL, NULL);
-	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, &outImage_buffer, 0, NULL, NULL);
+	err=clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0,out_image, 0, NULL, NULL);
 	
 	//This command stops the program here until everything in the queue has been run
 	clFinish(queue);
 	//system("nvidia-smi");
 	end = clock();
-	
+	displayImageInt(out_image,resHeight,resWidth);
 	//***Step 13*** Check that the host was able to retrieve the output data from the output buffer
 	//system("ls");
 	printf ("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
