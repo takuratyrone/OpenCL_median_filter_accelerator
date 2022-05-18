@@ -42,5 +42,5 @@ in_image, __write_only image2d_t out_image, int windowSize)
     pixelValue.x = oldPixels[rank];
     //out_image[x][y] = pixelValue.x;
     printf("Pixel value is %f\n", pixelValue.x);
-    write_imagei(out_image, (int2)(x, y),  pixelValue.y);
+    write_imagei(out_image, (int2)(x, y),  pixelValue.x);
 }
