@@ -41,6 +41,6 @@ in_image, __read_write image2d_t out_image, int windowSize)
     //median is oldPixels[rank], update
     pixelValue.x = oldPixels[rank];
     //out_image[x][y] = pixelValue.x;
-    printf("Pixel value is %f\n", pixelValue.w);
-    write_imagef(out_image, (int2)(x, y), pixelValue);
+    printf("Pixel value is %f\n", pixelValue.x);
+    write_imagei(out_image, (int2)(x, y),  pixelValue.x);
 }
