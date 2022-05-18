@@ -13,7 +13,31 @@
 #include <vector>
 
 using namespace std;
+void displayImageInt(unsigned int *in, int rows, int cols)
 
+{
+
+	for ( int i = 0; i < rows; i++)
+
+	{	
+
+		for ( int j = 0; j < cols; j++)
+
+		{
+
+			printf("%d ", in[ i * cols + j ]);
+
+		}
+
+		printf("\n");
+
+	}
+
+	
+
+	printf("\n");
+
+}
 int main(void)
 {
 
@@ -42,37 +66,33 @@ int main(void)
 	ss >> resHeight >> resWidth;
 	cout << resHeight << " columns and " << resWidth << " rows" << endl;
 
-	float array[resHeight][resWidth];
+	float array[resWidth][resHeight];
 
-	for(int row = 0; row < resHeight; ++row)
-    for (int col = 0; col < resWidth; ++col) ss >> array[row][col];
+	for(int row = 0; row < resWidth; ++row)
+    for (int col = 0; col < resHeight; ++col) ss >> array[row][col];
 
 	// Now print the array to see the result
-	/*for(int row = 0; row < resHeight; ++row) {
-		for(int col = 0; col < resWidth; ++col) {
+	for(int row = 0; row < resWidth; ++row) {
+		for(int col = 0; col < resHeight; ++col) {
 		cout << array[row][col] << " ";
 		}
 		cout << endl;
-	}*/
+	}
 	infile.close();
 
 
 	/*std:: string form;
 	std:: string comment;
-
 	std::string line;
     std::ifstream image("sloan_image.pgm",std::ios::binary);
     std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
-
 	getline(image, form);
 	getline(image, comment);
 	
 	image >> resWidth;
 	image >> resHeight;
 	cout << "Number of Pixels: "<<resWidth*resHeight<<"\n";
-
 	image >> maxValue;
-
 	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
 		image >> buffer[i];
 	}*/
@@ -210,7 +230,7 @@ int main(void)
 
 	//TODO: select the kernel you are running
 	cl_kernel kernel = clCreateKernel(program, "median_filter_kernel", &err);
-	printf("cl_kernel\n");
+	printf("cl_kernel %i\n", err);
 	//------------------------------------------------------------------------
 	
 	//***Step 8*** create command queue to the target device. This is the queue that the kernels get dispatched too, to get the the desired device.
@@ -219,7 +239,7 @@ int main(void)
 	//						cl_command_queue_properties properties,
 	//						cl_int *errcode_ret)
 	
-	//start = clock();
+	start = clock();
 	cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, 0, NULL);
 	printf("cl_command\n");
 
@@ -228,9 +248,9 @@ int main(void)
 	//***Step 9*** create data buffers for memory management between the host and the target device
 	//TODO: set global_size, local_size and num_groups, in order to control the number of work item in each work group
 	
-	size_t global_size = resWidth*resHeight; //total number of work items
-	size_t local_size = 1; //Size of each work group
-        size_t im_width = resWidth;
+	size_t global_size[2] = {resWidth, resHeight}; //total number of work items
+	size_t local_size = resWidth; //Size of each work group
+	size_t im_width = resWidth;
 	size_t im_height = resHeight;
 	cl_int num_groups = resHeight; //number of work groups needed
 	cl_int windowSize = Size;
@@ -239,11 +259,13 @@ int main(void)
 
 	//already got matrixA and matrixB
 	//TODO: initialize the output array
-
    	//int output[global_size]; //output array
-	float out_image[resHeight][resWidth];
-	printf("out_image");
-
+	//float out_image[resWidth][resHeight];
+	//printf("out_image");
+        // *out_image;
+        int sizeInBytes = resWidth*resHeight*sizeof(unsigned int);
+        unsigned int *out_image = ( unsigned int*)malloc( sizeInBytes);
+        //if(!out_image) throw_error();
 	
 	//Buffer (memory block) that both the host and target device can access 
 	//cl_mem clCreateBuffer(cl_context context,
@@ -253,7 +275,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 	
 	//TODO: Allocate OpenCl imge memory buffer
-	static const cl_image_format format = { CL_RGBA, CL_FLOAT };
+	static const cl_image_format format = { CL_RGBA, CL_FLOAT};
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
         image_desc.image_width = im_width;
@@ -265,11 +287,11 @@ int main(void)
         image_desc.num_samples = 0;
         image_desc.buffer = NULL;
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage(context,CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
-	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&out_image, &err);
-        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
+	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
+	 outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,out_image, &err);
+        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,sizeInBytes,out_image, &err);
 	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
-	size_t origin[3] = {0, 0, 0};
+		size_t origin[3] = {0, 0, 0};
         size_t region[3] = {resWidth, resHeight, 1};
         clEnqueueWriteImage(queue, inImage_buffer, CL_FALSE, origin, region, 0, 0, &array, 0, NULL, NULL);
         //clEnqueueWriteBuffer(queue, bufferFilter, CL_FALSE, 0, filterSize*sizeof(float), &inImage_buffer, 0, NULL, NULL);
@@ -304,36 +326,39 @@ int main(void)
 	
 	//end = clock(); //data transfer overhead
 	//start = clock();  //data processing 
-	cl_int err4 = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &local_size, 0, NULL, NULL); 
+	cl_int err4 = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL); 
 	//system("nvidia-smi");
 	
 
 	printf("\nKernel check: %i \n",err4);
 
 	//------------------------------------------------------------------------
-
 	//***Step 12*** Allows the host to read from the buffer object 
-	//err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(out_image), out_image, 0, NULL, NULL);
-	clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, &outImage_buffer, 0, NULL, NULL);
-	
-	//This command stops the program here until everything in the queue has been run
-	clFinish(queue);
-	//system("nvidia-smi");
+	err = clEnqueueReadImage(queue,outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
+        //err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,sizeInBytes,out_image, 0, NULL, NULL);
+        //void (*map_ptr)[2] = (float (*)[2]) out_image;
+	printf("clEnqueue = %i\n", err);
+	printf("clFinish\n");
 	end = clock();
-	
-	//***Step 13*** Check that the host was able to retrieve the output data from the output buffer
-	//system("ls");
-	printf ("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
+	printf("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
+	//for(int row = 0; row < resWidth; ++row) {
+	//	for(int col = 0; col < resHeight; ++col) {
+                //out_image[row][col]=col;
+		//cout << out_image[row][col] << " ";
+          //      cout << out_image;
+	//	}
+	//	cout << endl;
+//	}
+
 	/*if(displayMatrices){
 		printf("\nOutput in the output_buffer \n");
 		for(int j=0; j<countA; j++) {
-			printf("%i \t " ,output[j]);
 			if(j%Size == (Size-1)){
 				printf("\n");
 			}
 		}
 	}*/
-	
+	displayImageInt( out_image,resHeight,resWidth);
 	
 	//------------------------------------------------------------------------
 
@@ -348,3 +373,5 @@ int main(void)
 
 	return 0;
 }
+
+
