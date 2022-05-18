@@ -289,11 +289,7 @@ int main(void)
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
 	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
 	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,out_image, &err);
-<<<<<<< HEAD
-        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, global_size*sizeof(countA), out_image, &err);
-=======
         //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,sizeInBytes,out_image, &err);
->>>>>>> b848dce531bcec1316a46719faf663b1c90954c3
 	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 		size_t origin[3] = {0, 0, 0};
         size_t region[3] = {resWidth, resHeight, 1};
@@ -338,15 +334,9 @@ int main(void)
 
 	//------------------------------------------------------------------------
 	//***Step 12*** Allows the host to read from the buffer object 
-<<<<<<< HEAD
-	//err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(out_image), out_image, 0, NULL, NULL);
-	err = clEnqueueReadImage(queue, outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
-	//void* map_ptr = clEnqueueMapImage(queue, outImage_buffer, CL_TRUE, CL_MAP_READ, origin, region, 0, 0, 0, NULL, NULL, &err);
-=======
 	err = clEnqueueReadImage(queue,outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
         //err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,sizeInBytes,out_image, 0, NULL, NULL);
         //void (*map_ptr)[2] = (float (*)[2]) out_image;
->>>>>>> b848dce531bcec1316a46719faf663b1c90954c3
 	printf("clEnqueue = %i\n", err);
 	printf("clFinish\n");
 	end = clock();
@@ -368,7 +358,7 @@ int main(void)
 			}
 		}
 	}*/
-	displayImageInt( out_image,resHeight,resWidth);
+	displayImageInt( out_image,resWidth,resHeight);
 	
 	//------------------------------------------------------------------------
 

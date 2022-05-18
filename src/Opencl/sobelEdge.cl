@@ -21,11 +21,11 @@ __constant int VerticalFilter[9] = {
 // using unsigned integers to represent the RGB channels and should be between
 // 0 and 255. This means the format CL_UNSIGNED_INT8 should be used when creating
 // the image2d_t source and output
-__kernel void SobelFilter(
+__kernel void sobelFilter(
 	__read_only image2d_t sourceImage, 
 	__write_only image2d_t outputImage,
-	int width,
-	int height
+	int imageWidth,
+	int imageHeight
 	)
 { 
 	// This is the currently focused pixel and is the output pixel
@@ -33,7 +33,7 @@ __kernel void SobelFilter(
 	int2 ImageCoordinate = (int2)(get_global_id(0), get_global_id(1));
 
 	// Make sure we are within the image bounds
-	if (ImageCoordinate.x < width && ImageCoordinate.y < height)
+	if (ImageCoordinate.x < imageWidth && ImageCoordinate.y < imageHeight)
 	{ 		
 		int x = ImageCoordinate.x;
 		int y = ImageCoordinate.y;
