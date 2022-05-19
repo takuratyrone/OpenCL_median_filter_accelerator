@@ -13,19 +13,19 @@
 #include <vector>
 
 using namespace std;
-void displayImageInt(unsigned int *in, int rows, int cols)
+void displayImageInt(float *in, int rows, int cols)
 
 {
 
-	for ( int i = 0; i < rows; i++)
+	for ( int i = 0; i <cols; i++)
 
 	{	
 
-		for ( int j = 0; j < cols; j++)
+		for ( int j = 0; j < rows; j++)
 
 		{
 
-			printf("%d ", in[ i * cols + j ]);
+			printf("%.0f ", in[ i * cols + j ]);
 
 		}
 
@@ -50,7 +50,7 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	ifstream infile("baboon.pgm");
+	ifstream infile("sloan_image.pgm");
 	stringstream ss;
 	string inputLine = "";
 
@@ -180,7 +180,7 @@ int main(void)
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
-	program_handle = fopen("Opencl/sobelEdge.cl", "r");
+	program_handle = fopen("Opencl/medianFilter.cl", "r");
 	printf("program_handle\n");
 	//get program size
 	size_t program_size;//, log_size;
@@ -229,7 +229,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 
 	//TODO: select the kernel you are running
-	cl_kernel kernel = clCreateKernel(program, "sobelFilter", &err);
+	cl_kernel kernel = clCreateKernel(program, "median_filter_kernel", &err);
 	printf("cl_kernel %i\n", err);
 	//------------------------------------------------------------------------
 	
@@ -253,8 +253,7 @@ int main(void)
 	size_t im_width = resWidth;
 	size_t im_height = resHeight;
 	cl_int num_groups = resHeight; //number of work groups needed
-	cl_int imageWidth = resWidth;
-    cl_int imageHeight = resHeight;
+	cl_int windowSize = Size;
 	printf("cl_int\n");
 	//cl_int numElem = Size*Size;
 
@@ -262,11 +261,12 @@ int main(void)
 	//TODO: initialize the output array
    	//int output[global_size]; //output array
 	//float out_image[resWidth][resHeight];
-	//printf("out_image");
+	printf("out_image\n");
         // *out_image;
-        int sizeInBytes = resWidth*resHeight*sizeof(unsigned int);
-        unsigned int *out_image = ( unsigned int*)malloc( sizeInBytes);
+        int sizeInBytes = resWidth*resHeight*sizeof(float);
+        float *out_image = (float*)malloc( sizeInBytes);
         //if(!out_image) throw_error();
+	printf("mkoo\n");
 	
 	//Buffer (memory block) that both the host and target device can access 
 	//cl_mem clCreateBuffer(cl_context context,
@@ -287,10 +287,13 @@ int main(void)
         image_desc.num_mip_levels = 0;
         image_desc.num_samples = 0;
         image_desc.buffer = NULL;
+	printf("image_desc\n");
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,&array, &err); // could not put host pointer
+	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,array, &err); // could not put host pointer
+	printf("input \n");
 	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,out_image, &err);
-        //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,sizeInBytes,out_image, &err);
+    printf("outimage\n");
+	    //outImage_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,sizeInBytes,out_image, &err);
 	//bufferFilter = clCreateBuffer(context, 0, filterSize*sizeof(float), NULL, NULL);
 		size_t origin[3] = {0, 0, 0};
         size_t region[3] = {resWidth, resHeight, 1};
@@ -306,8 +309,7 @@ int main(void)
 	//TODO: create the arguments for the kernel. Note you can create a local buffer only on the GPU as follows: clSetKernelArg(kernel, argNum, size, NULL);
 	clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer );
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &outImage_buffer);
-	clSetKernelArg(kernel, 2, sizeof(cl_int), &imageWidth);
-    clSetKernelArg(kernel, 3, sizeof(cl_int), &imageHeight);
+	clSetKernelArg(kernel, 2, sizeof(cl_int), &windowSize);
 	//clSetKernelArg(kernel, 3, sizeof(cl_int), &widthA);
 	//------------------------------------------------------------------------
 
@@ -337,7 +339,7 @@ int main(void)
 	//------------------------------------------------------------------------
 	//***Step 12*** Allows the host to read from the buffer object 
 	err = clEnqueueReadImage(queue,outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
-        //err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,sizeInBytes,out_image, 0, NULL, NULL);
+    //err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,sizeInBytes,out_image, 0, NULL, NULL);
         //void (*map_ptr)[2] = (float (*)[2]) out_image;
 	printf("clEnqueue = %i\n", err);
 	printf("clFinish\n");
@@ -360,7 +362,7 @@ int main(void)
 			}
 		}
 	}*/
-	displayImageInt( out_image,resWidth,resHeight);
+	displayImageInt( out_image,resHeight,resWidth);
 	
 	//------------------------------------------------------------------------
 

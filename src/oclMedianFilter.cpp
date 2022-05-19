@@ -25,7 +25,7 @@ void displayImageInt(float *in, int rows, int cols)
 
 		{
 
-			printf("%f ", in[ i * cols + j ]);
+			printf("%.0f ", in[ i * cols + j ]);
 
 		}
 
@@ -50,7 +50,7 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	ifstream infile("balloons.pgm");
+	ifstream infile("sloan_image.pgm");
 	stringstream ss;
 	string inputLine = "";
 
