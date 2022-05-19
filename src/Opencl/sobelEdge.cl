@@ -1,11 +1,11 @@
 __constant sampler_t image_sampler = CLK_NORMALIZED_COORDS_FALSE
 | CLK_ADDRESS_CLAMP_TO_EDGE;
-__kernel void
-sobel_filter_kernel(__read_only image2d_t iimage,
-__write_only image2d_t oimage,
-__global float *filter_x_grad,
-__global float *filter_y_grad,
-int windowSize)
+
+__kernel void sobel_filter_kernel(__read_only image2d_t iimage,
+                                __write_only image2d_t oimage,
+                                __global float *filter_x_grad,
+                                __global float *filter_y_grad,
+                                int windowSize)
 {
     unsigned int x = get_global_id(0);
     unsigned int y = get_global_id(1);
@@ -15,6 +15,8 @@ int windowSize)
     float gradientY = 0.0f;
     float computedFilter = 0.0f;
     int i, j, ifilter, jfilter;
+    float computedGradient;
+    
     for(i=-halfWindow, ifilter=0; i<=halfWindow; i++, ifilter++)
     {
         for(j = -halfWindow, jfilter=0;j<=halfWindow; j++,jfilter++)
@@ -27,5 +29,6 @@ int windowSize)
     //gradient and gradient is the image gradient in X and Y axes.
     //Now compute the gradient magnitude
     computedGradient = sqrt(gradientX*gradientX + gradientY*gradientY);
-    write_imagef(oimage, (int2)(x, y), (float4)(computedGradient, 0.0f, 0.0f, 1.0f);
+    write_imagef(oimage, (int2)(x, y), (float4)(computedGradient, 0.0f, 0.0f, 1.0f));
+
 }

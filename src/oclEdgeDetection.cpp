@@ -16,6 +16,11 @@ using namespace std;
 void displayImageInt(float *in, int rows, int cols)
 
 {
+	ofstream myFile("sobelOutput.pgm");
+	myFile << "P2" << endl;
+	myFile << "# written by group 15" << endl;
+	myFile << cols << " " << rows << endl;
+	myFile << "255" << endl;
 
 	for ( int i = 0; i <cols; i++)
 
@@ -26,9 +31,10 @@ void displayImageInt(float *in, int rows, int cols)
 		{
 
 			printf("%.0f ", in[ i * cols + j ]);
+			myFile << in[ i * cols + j ] << " ";
 
 		}
-
+		myFile << endl;
 		printf("\n");
 
 	}
@@ -80,7 +86,13 @@ int main(void)
 	}
 	infile.close();
 
+	float xGrad[9] = {1, 0, -1,
+					2, 0, -2,
+					1, 0, -1};
 
+	float yGrad[9] = {1, 2, 1,
+					0, 0, 0,
+					-1, -2, -1};
 	/*std:: string form;
 	std:: string comment;
 	std::string line;
@@ -110,7 +122,7 @@ int main(void)
 	 
 	//Initialize Buffers, memory space the allows for communication between the host and the target device
 	//TODO: initialize matrixA_buffer, matrixB_buffer and output_buffer
-	cl_mem inImage_buffer, outImage_buffer, bufferFilter;
+	cl_mem inImage_buffer, outImage_buffer, bufferFilter, filterX, filterY;
 
 	//***step 1*** Get the platform you want to use
 	//cl_int clGetPlatformIDs(cl_uint num_entries,
@@ -180,7 +192,7 @@ int main(void)
 	//***Step 4*** get details about the kernel.cl file in order to create it (read the kernel.cl file and place it in a buffer)
 	//read file in	
 	FILE *program_handle;
-	program_handle = fopen("Opencl/medianFilter.cl", "r");
+	program_handle = fopen("Opencl/sobelEdge.cl", "r");
 	printf("program_handle\n");
 	//get program size
 	size_t program_size;//, log_size;
@@ -229,7 +241,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 
 	//TODO: select the kernel you are running
-	cl_kernel kernel = clCreateKernel(program, "median_filter_kernel", &err);
+	cl_kernel kernel = clCreateKernel(program, "sobel_filter_kernel", &err);
 	printf("cl_kernel %i\n", err);
 	//------------------------------------------------------------------------
 	
@@ -276,7 +288,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 	
 	//TODO: Allocate OpenCl imge memory buffer
-	static const cl_image_format format = { CL_RGBA, CL_UNSIGNED_INT8};
+	static const cl_image_format format = { CL_R, CL_UNSIGNED_INT8};
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
         image_desc.image_width = local_size;
@@ -288,7 +300,8 @@ int main(void)
         image_desc.num_samples = 0;
         image_desc.buffer = NULL;
 	printf("image_desc\n");
-	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
+	filterX = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(xGrad), &xGrad, &err);
+	filterY = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(yGrad), &yGrad, &err);
 	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,array, &err); // could not put host pointer
 	printf("input \n");
 	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,out_image, &err);
@@ -309,7 +322,9 @@ int main(void)
 	//TODO: create the arguments for the kernel. Note you can create a local buffer only on the GPU as follows: clSetKernelArg(kernel, argNum, size, NULL);
 	clSetKernelArg(kernel, 0, sizeof(cl_mem), &inImage_buffer );
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &outImage_buffer);
-	clSetKernelArg(kernel, 2, sizeof(cl_int), &windowSize);
+	clSetKernelArg(kernel, 2, sizeof(cl_mem), &filterX);
+	clSetKernelArg(kernel, 3, sizeof(cl_mem), &filterY);
+	clSetKernelArg(kernel, 4, sizeof(cl_int), &windowSize);
 	//clSetKernelArg(kernel, 3, sizeof(cl_int), &widthA);
 	//------------------------------------------------------------------------
 

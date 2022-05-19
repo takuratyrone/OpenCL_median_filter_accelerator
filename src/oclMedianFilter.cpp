@@ -16,19 +16,24 @@ using namespace std;
 void displayImageInt(float *in, int rows, int cols)
 
 {
-
-	for ( int i = 0; i <cols; i++)
+	ofstream myFile("medianFilterOutput.pgm");
+	myFile << "P2" << endl;
+	myFile << "# written by group 15" << endl;
+	myFile << cols << " " << rows << endl;
+	myFile << "255" << endl;
+	for ( int i = 0; i <rows; i++)
 
 	{	
 
-		for ( int j = 0; j < rows; j++)
+		for ( int j = 0; j < cols; j++)
 
 		{
 
-			printf("%.0f ", in[ i * cols + j ]);
+			printf("%.0f ", in[ i * rows + j ]);
+			myFile << in[ i * rows + j ] << " ";
 
 		}
-
+		myFile << endl;
 		printf("\n");
 
 	}
@@ -362,7 +367,7 @@ int main(void)
 			}
 		}
 	}*/
-	displayImageInt( out_image,resHeight,resWidth);
+	displayImageInt( out_image,resWidth,resHeight);
 	
 	//------------------------------------------------------------------------
 
