@@ -11,9 +11,10 @@
 #include<cmath>
 #include <tuple>
 #include <vector>
+#include <cstring>
 
 using namespace std;
-void displayImageInt(float *in, int rows, int cols)
+void displayImageInt(float *in, int cols, int rows)
 
 {
 	ofstream myFile("medianFilterOutput.pgm");
@@ -29,8 +30,8 @@ void displayImageInt(float *in, int rows, int cols)
 
 		{
 
-			printf("%.0f ", in[ i * rows + j ]);
-			myFile << in[ i * rows + j ] << " ";
+			printf("%.0f ", in[ i * cols + j ]);
+			myFile << in[ i * cols + j ] << " ";
 
 		}
 		myFile << endl;
@@ -68,40 +69,25 @@ int main(void)
 
 	ss << infile.rdbuf();
 	// Third line : size
-	ss >> resHeight >> resWidth;
-	cout << resHeight << " columns and " << resWidth << " rows" << endl;
+	ss >> resWidth >> resHeight;
+	cout << resWidth << " columns and " << resHeight << " rows" << endl;
 
-	float array[resWidth][resHeight];
+	getline(infile,inputLine);
+  	cout << "Max scale : " << inputLine << endl;
 
-	for(int row = 0; row < resWidth; ++row)
-    for (int col = 0; col < resHeight; ++col) ss >> array[row][col];
+	float array[resHeight][resWidth];
+
+	for(int row = 0; row < resHeight; ++row)
+    for (int col = 0; col < resWidth; ++col) ss >> array[row][col];
 
 	// Now print the array to see the result
-	for(int row = 0; row < resWidth; ++row) {
-		for(int col = 0; col < resHeight; ++col) {
+	for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < resWidth; ++col) {
 		cout << array[row][col] << " ";
 		}
 		cout << endl;
 	}
 	infile.close();
-
-
-	/*std:: string form;
-	std:: string comment;
-	std::string line;
-    std::ifstream image("sloan_image.pgm",std::ios::binary);
-    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(image), {});
-	getline(image, form);
-	getline(image, comment);
-	
-	image >> resWidth;
-	image >> resHeight;
-	cout << "Number of Pixels: "<<resWidth*resHeight<<"\n";
-	image >> maxValue;
-	for (unsigned int i  = 0; i < resWidth*resHeight; i++) {
-		image >> buffer[i];
-	}*/
-	
 	
 	/* OpenCL structures you need to program*/
 	//cl_device_id device; step 1 and 2 
@@ -175,7 +161,7 @@ int main(void)
 	//				cl_uint num_devices,
 	//				void *pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data),
 	//				void *user_data,cl_int *errcode_ret)
-        printf("Dean 1\n");
+    printf("Dean 1\n");
 	cl_context context; //This is your contextID, the line below must just run
 	printf("cl_context\n");
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
@@ -268,8 +254,9 @@ int main(void)
 	//float out_image[resWidth][resHeight];
 	printf("out_image\n");
         // *out_image;
-        int sizeInBytes = resWidth*resHeight*sizeof(float);
-        float *out_image = (float*)malloc( sizeInBytes);
+	float *data = (float *)malloc(resWidth*resHeight*sizeof(float));
+    int sizeInBytes = resWidth*resHeight*sizeof(float);
+    float *out_image = (float*)malloc( sizeInBytes);
         //if(!out_image) throw_error();
 	printf("mkoo\n");
 	
@@ -284,8 +271,9 @@ int main(void)
 	static const cl_image_format format = { CL_RGBA, CL_UNSIGNED_INT8};
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
-        image_desc.image_width = local_size;
+        image_desc.image_width = im_width;
         image_desc.image_height = im_height;
+		image_desc.image_depth = 1;
         image_desc.image_array_size = 1;
         image_desc.image_row_pitch = 0;
         image_desc.image_slice_pitch = 0;
@@ -294,7 +282,8 @@ int main(void)
         image_desc.buffer = NULL;
 	printf("image_desc\n");
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
-	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,array, &err); // could not put host pointer
+	memcpy(data, array, resWidth*resHeight*sizeof(float));
+	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,data, &err); // could not put host pointer
 	printf("input \n");
 	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,out_image, &err);
     printf("outimage\n");
