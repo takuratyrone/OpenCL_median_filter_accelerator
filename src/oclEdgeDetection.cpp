@@ -11,9 +11,10 @@
 #include<cmath>
 #include <tuple>
 #include <vector>
+#include <cstring>
 
 using namespace std;
-void displayImageInt(float *in, int rows, int cols)
+void displayImageInt(float *in, int cols, int rows)
 
 {
 	ofstream myFile("sobelOutput.pgm");
@@ -21,12 +22,11 @@ void displayImageInt(float *in, int rows, int cols)
 	myFile << "# written by group 15" << endl;
 	myFile << cols << " " << rows << endl;
 	myFile << "255" << endl;
-
-	for ( int i = 0; i <cols; i++)
+	for ( int i = 0; i <rows; i++)
 
 	{	
 
-		for ( int j = 0; j < rows; j++)
+		for ( int j = 0; j < cols; j++)
 
 		{
 
@@ -69,17 +69,18 @@ int main(void)
 
 	ss << infile.rdbuf();
 	// Third line : size
-	ss >> resHeight >> resWidth;
-	cout << resHeight << " columns and " << resWidth << " rows" << endl;
+	ss >> resWidth >> resHeight >> maxValue;
+	cout << resWidth << " columns and " << resHeight << " rows " << maxValue << " max value " << endl;
 
-	float array[resWidth][resHeight];
 
-	for(int row = 0; row < resWidth; ++row)
-    for (int col = 0; col < resHeight; ++col) ss >> array[row][col];
+	float array[resHeight][resWidth];
+
+	for(int row = 0; row < resHeight; ++row)
+    for (int col = 0; col < resWidth; ++col) ss >> array[row][col];
 
 	// Now print the array to see the result
-	for(int row = 0; row < resWidth; ++row) {
-		for(int col = 0; col < resHeight; ++col) {
+	for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < resWidth; ++col) {
 		cout << array[row][col] << " ";
 		}
 		cout << endl;
@@ -275,9 +276,10 @@ int main(void)
 	//float out_image[resWidth][resHeight];
 	printf("out_image\n");
         // *out_image;
-        int sizeInBytes = resWidth*resHeight*sizeof(float);
-        float *out_image = (float*)malloc( sizeInBytes);
-        //if(!out_image) throw_error();
+	float *data = (float *)malloc(resWidth*resHeight*sizeof(float));
+    int sizeInBytes = resWidth*resHeight*sizeof(float);
+    float *out_image = (float*)malloc( sizeInBytes);
+    //if(!out_image) throw_error();
 	printf("mkoo\n");
 	
 	//Buffer (memory block) that both the host and target device can access 
@@ -288,11 +290,12 @@ int main(void)
 	//			cl_int* errcode_ret);
 	
 	//TODO: Allocate OpenCl imge memory buffer
-	static const cl_image_format format = { CL_RGBA, CL_UNSIGNED_INT8};
+	static const cl_image_format format = { CL_A, CL_UNSIGNED_INT8};
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
-        image_desc.image_width = local_size;
+        image_desc.image_width = im_width;
         image_desc.image_height = im_height;
+		image_desc.image_depth = 1;
         image_desc.image_array_size = 1;
         image_desc.image_row_pitch = 0;
         image_desc.image_slice_pitch = 0;
@@ -302,7 +305,8 @@ int main(void)
 	printf("image_desc\n");
 	filterX = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(xGrad), &xGrad, &err);
 	filterY = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(yGrad), &yGrad, &err);
-	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,array, &err); // could not put host pointer
+	memcpy(data, array, resWidth*resHeight*sizeof(float));
+	inImage_buffer = clCreateImage(context,CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR,&format,&image_desc,data, &err); // could not put host pointer
 	printf("input \n");
 	outImage_buffer = clCreateImage(context, CL_MEM_READ_WRITE| CL_MEM_COPY_HOST_PTR,&format,&image_desc,out_image, &err);
     printf("outimage\n");
@@ -377,7 +381,7 @@ int main(void)
 			}
 		}
 	}*/
-	displayImageInt( out_image,resHeight,resWidth);
+	displayImageInt( out_image,resWidth,resHeight);
 	
 	//------------------------------------------------------------------------
 

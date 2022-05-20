@@ -70,7 +70,7 @@ int main(void)
 	ss << infile.rdbuf();
 	// Third line : size
 	ss >> resWidth >> resHeight >> maxValue;
-	cout << resWidth << " columns and " << resHeight << " rows" << maxValue << " max value " << endl;
+	cout << resWidth << " columns and " << resHeight << " rows " << maxValue << " max value " << endl;
 
 	
 
