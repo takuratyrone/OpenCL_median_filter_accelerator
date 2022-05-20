@@ -288,7 +288,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 	
 	//TODO: Allocate OpenCl imge memory buffer
-	static const cl_image_format format = { CL_R, CL_UNSIGNED_INT8};
+	static const cl_image_format format = { CL_RGBA, CL_UNSIGNED_INT8};
         cl_image_desc image_desc;
         image_desc.image_type = CL_MEM_OBJECT_IMAGE2D;
         image_desc.image_width = local_size;

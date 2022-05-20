@@ -22,13 +22,16 @@ __kernel void sobel_filter_kernel(__read_only image2d_t iimage,
         for(j = -halfWindow, jfilter=0;j<=halfWindow; j++,jfilter++)
         {
             pixelValue = read_imagef(iimage, image_sampler, (int2)(x+i, y+j));
+            //printf("Pixel value: %i\n",pixelValue.y);
             gradientX += filter_x_grad[ifilter*windowSize+jfilter] *pixelValue.x;
             gradientY += filter_y_grad[ifilter*windowSize+jfilter] *pixelValue.y;
         }
     }
     //gradient and gradient is the image gradient in X and Y axes.
     //Now compute the gradient magnitude
+    printf("Gradient: %f\n", gradientX);
     computedGradient = sqrt(gradientX*gradientX + gradientY*gradientY);
-    write_imagef(oimage, (int2)(x, y), (float4)(computedGradient, 0.0f, 0.0f, 1.0f));
+    //printf("Gradient: %f\n", computedGradient);
+    write_imagef(oimage, (int2)(x, y), (computedGradient));
 
 }
