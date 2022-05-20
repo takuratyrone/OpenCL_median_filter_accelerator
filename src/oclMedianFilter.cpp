@@ -69,11 +69,10 @@ int main(void)
 
 	ss << infile.rdbuf();
 	// Third line : size
-	ss >> resWidth >> resHeight;
-	cout << resWidth << " columns and " << resHeight << " rows" << endl;
+	ss >> resWidth >> resHeight >> maxValue;
+	cout << resWidth << " columns and " << resHeight << " rows" << maxValue << " max value " << endl;
 
-	getline(infile,inputLine);
-  	cout << "Max scale : " << inputLine << endl;
+	
 
 	float array[resHeight][resWidth];
 
