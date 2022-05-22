@@ -56,7 +56,7 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	ifstream infile("balloons_noisy.ascii.pgm");
+	ifstream infile("glassware_noisy.ascii.pgm");
 	stringstream ss;
 	string inputLine = "";
 
