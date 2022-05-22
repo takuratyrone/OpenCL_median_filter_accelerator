@@ -56,7 +56,7 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	ifstream infile("sloan_image.pgm");
+	ifstream infile("baboon.pgm");
 	stringstream ss;
 	string inputLine = "";
 
