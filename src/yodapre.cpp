@@ -7,6 +7,7 @@
 #include <vector>
 using namespace std;
 
+
 std::string inputPGMFile = "sloan.pgm";
 	int largeWidth, largeHeight;
 

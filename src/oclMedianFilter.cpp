@@ -56,7 +56,7 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	ifstream infile("sloan_image.pgm");
+	ifstream infile("balloons.pgm");
 	stringstream ss;
 	string inputLine = "";
 
@@ -77,17 +77,15 @@ int main(void)
 	float array[resHeight*resWidth];
 
 	//for(int row = 0; row < resHeight; ++row)
-    for (int col = 0; col < (resWidth*resHeight); ++col) ss >> array[col];
+    for (int col = 0; col < (resWidth*resHeight); col++) ss >> array[col];
 
 	// Now print the array to see the result
-	//for(int row = 0; row < resHeight; ++row) {
-		for(int col = 0; col < (resWidth*resHeight); ++col) {
-		cout << array[col] << " ";
-		if ((col%resWidth==0) && (col>0))
-			cout << endl;
+	for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < resWidth; col++) {
+			cout << array[row*resWidth + col] << " ";
 		}
 		cout << endl;
-	//}
+	}
 	infile.close();
 	
 	/* OpenCL structures you need to program*/
@@ -254,11 +252,12 @@ int main(void)
    	
 	printf("out_image\n");
         // *out_image;
-	/*float *data = (float *)malloc(resWidth*resHeight*sizeof(float));
+	float *data = (float *)malloc(resWidth*resHeight*sizeof(float));
     int sizeInBytes = resWidth*resHeight*sizeof(float);
-    float *out_image = (float*)malloc( sizeInBytes);*/
+    /*float *out_image = (float*)malloc( sizeInBytes);*/
 	int size = resWidth*resHeight;
-	float out_image[size];
+	float out_image[size*sizeof(float)];
+	size_t Sizes = size;
         //if(!out_image) throw_error();
 	printf("mkoo\n");
 	
@@ -271,12 +270,12 @@ int main(void)
 	
 	//TODO: Allocate OpenCl imge memory buffer
 
-	inImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*resWidth*resHeight, &array, &err);
+	inImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*size, &array, &err);
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
 	
 	printf("input \n");
 
-	outImage_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(float)*resWidth*resHeight, out_image, &err);
+	outImage_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(float)*size, out_image, &err);
 	printf("outimage\n");
 	//------------------------------------------------------------------------
 
@@ -319,21 +318,22 @@ int main(void)
 	//------------------------------------------------------------------------
 	//***Step 12*** Allows the host to read from the buffer object 
 	//err = clEnqueueReadImage(queue,outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
-    err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,size,out_image, 0, NULL, NULL);
+	//memcpy(data, out_image, resWidth*resHeight*sizeof(float));
+    err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0, sizeof(float)*size, out_image, 0, NULL, NULL);
 	//err = clEnqueueReadBuffer(queue, output_buffer, CL_TRUE, 0, sizeof(output), output, 0, NULL, NULL);
         //void (*map_ptr)[2] = (float (*)[2]) out_image;
 	printf("clEnqueue = %i\n", err);
 	printf("clFinish\n");
 	end = clock();
 	printf("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
-	//for(int row = 0; row < resWidth; ++row) {
-	//	for(int col = 0; col < resHeight; ++col) {
+	/*for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < resWidth; ++col) {
                 //out_image[row][col]=col;
-		//cout << out_image[row][col] << " ";
+		cout << out_image[row*resWidth + col] << " ";
           //      cout << out_image;
-	//	}
-	//	cout << endl;
-//	}
+		}
+		cout << endl;
+	}*/
 
 	/*if(displayMatrices){
 		printf("\nOutput in the output_buffer \n");

@@ -3,24 +3,20 @@
 
 namespace SMKKUD001{
 
-class FrameSequence{
+/*class FrameSequence{
 	std::vector<unsigned char**> imageSequence;
 	int width, height;
 
 	public:
-	FrameSequence(void); //default constructor
+	void FrameSequence(void); //default constructor
 	~FrameSequence(); //destructor;
-	setFrameSize(int width, int height);
+	void setFrameSize(int width, int height);
 
-}; //end of class
+}; //end of class */
 } //end of namespace
 
 #endif
 
 //function prototypes
-unsigned char** extract(int x1,int y1,int x2, int y2, int width,int largeWidth, int largeHeight, int height,std::ifstream& imageFile );
-void write(std::vector<unsigned char **> imageSequence, std::string operation, std::string seq_name, int width, int height);
-
-std::vector<unsigned char **> twoInputs(int** coordinates, int width, int largeWidth, int largeHeight, int height, std::ifstream& imageFile);
-
-std::vector<unsigned char **> polyLine(int** coordinates, int n_coordinates, int width, int largeWidth, int largeHeight, int height,std::ifstream& imageFile);
+int** extract(int largeWidth, int largeHeight, std::ifstream& imageFile );
+void write(int ** imageSequence, int largeWidth, int largeHeight);
