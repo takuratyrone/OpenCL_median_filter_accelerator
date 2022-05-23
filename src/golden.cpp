@@ -28,6 +28,9 @@ int array[2000][2000];
 int arr[2000][2000];
 int main()
 {
+	clock_t start, end;
+
+	start = clock();
 	int window[9],row = 0, col = 0, numrows = 0, numcols = 0,MAX=0;
 	ifstream infile("sloan_image.pgm");
 	stringstream ss;
@@ -93,6 +96,9 @@ int main()
 	}
 
 	ofstream outfile;
+
+	end = clock();
+	printf("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
 	
 	//new file open to store the output image
 	outfile.open("Medianfilter.pnm");
