@@ -74,18 +74,20 @@ int main(void)
 
 	
 
-	float array[resHeight][resWidth];
+	float array[resHeight*resWidth];
 
-	for(int row = 0; row < resHeight; ++row)
-    for (int col = 0; col < resWidth; ++col) ss >> array[row][col];
+	//for(int row = 0; row < resHeight; ++row)
+    for (int col = 0; col < (resWidth*resHeight); ++col) ss >> array[col];
 
 	// Now print the array to see the result
-	for(int row = 0; row < resHeight; ++row) {
-		for(int col = 0; col < resWidth; ++col) {
-		cout << array[row][col] << " ";
+	//for(int row = 0; row < resHeight; ++row) {
+		for(int col = 0; col < (resWidth*resHeight); ++col) {
+		cout << array[col] << " ";
+		if ((col%resWidth==0) && (col>0))
+			cout << endl;
 		}
 		cout << endl;
-	}
+	//}
 	infile.close();
 	
 	/* OpenCL structures you need to program*/
@@ -219,7 +221,7 @@ int main(void)
 	//			cl_int* errcode_ret);
 
 	//TODO: select the kernel you are running
-	cl_kernel kernel = clCreateKernel(program, "medianFilter", &err);
+	cl_kernel kernel = clCreateKernel(program, "median_filter", &err);
 	printf("cl_kernel %i\n", err);
 	//------------------------------------------------------------------------
 	
@@ -238,7 +240,7 @@ int main(void)
 	//***Step 9*** create data buffers for memory management between the host and the target device
 	//TODO: set global_size, local_size and num_groups, in order to control the number of work item in each work group
 	
-	size_t global_size[2] = {resHeight, resWidth}; //total number of work items
+	size_t global_size = resHeight * resWidth; //total number of work items
 	size_t local_size = resWidth; //Size of each work group
 	cl_int im_width = resWidth;
 	cl_int im_height = resHeight;
@@ -252,9 +254,11 @@ int main(void)
    	
 	printf("out_image\n");
         // *out_image;
-	float *data = (float *)malloc(resWidth*resHeight*sizeof(float));
+	/*float *data = (float *)malloc(resWidth*resHeight*sizeof(float));
     int sizeInBytes = resWidth*resHeight*sizeof(float);
-    float *out_image = (float*)malloc( sizeInBytes);
+    float *out_image = (float*)malloc( sizeInBytes);*/
+	int size = resWidth*resHeight;
+	float out_image[size];
         //if(!out_image) throw_error();
 	printf("mkoo\n");
 	
@@ -267,12 +271,12 @@ int main(void)
 	
 	//TODO: Allocate OpenCl imge memory buffer
 
-	inImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(array), &array, &err);
+	inImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*resWidth*resHeight, &array, &err);
 	//outImage_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(matrixB), &matrixB, &err);
 	
 	printf("input \n");
 
-	outImage_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(sizeInBytes), out_image, &err);
+	outImage_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(float)*resWidth*resHeight, out_image, &err);
 	printf("outimage\n");
 	//------------------------------------------------------------------------
 
@@ -306,7 +310,7 @@ int main(void)
 	
 	//end = clock(); //data transfer overhead
 	//start = clock();  //data processing 
-	cl_int err4 = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL); 
+	cl_int err4 = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &local_size, 0, NULL, NULL); 
 	//system("nvidia-smi");
 	
 
@@ -315,7 +319,7 @@ int main(void)
 	//------------------------------------------------------------------------
 	//***Step 12*** Allows the host to read from the buffer object 
 	//err = clEnqueueReadImage(queue,outImage_buffer, CL_TRUE, origin, region, 0, 0, out_image, 0, NULL, NULL);
-    err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,sizeInBytes,out_image, 0, NULL, NULL);
+    err = clEnqueueReadBuffer(queue, outImage_buffer, CL_TRUE, 0,size,out_image, 0, NULL, NULL);
 	//err = clEnqueueReadBuffer(queue, output_buffer, CL_TRUE, 0, sizeof(output), output, 0, NULL, NULL);
         //void (*map_ptr)[2] = (float (*)[2]) out_image;
 	printf("clEnqueue = %i\n", err);
@@ -339,7 +343,7 @@ int main(void)
 			}
 		}
 	}*/
-	displayImageInt( out_image,resWidth,resHeight);
+	//displayImageInt( out_image,resWidth,resHeight);
 	
 	//------------------------------------------------------------------------
 
