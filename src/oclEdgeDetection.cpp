@@ -17,7 +17,7 @@ using namespace std;
 void displayImageInt(float *in, int cols, int rows)
 
 {
-	ofstream myFile("sobelOutput.pgm");
+	ofstream myFile("sobelEdge.pgm");
 	myFile << "P2" << endl;
 	myFile << "# written by group 15" << endl;
 	myFile << cols << " " << rows << endl;
@@ -381,7 +381,7 @@ int main(void)
 			}
 		}
 	}*/
-	displayImageInt( out_image,resWidth,resHeight);
+	//displayImageInt( out_image,resWidth,resHeight);
 	
 	//------------------------------------------------------------------------
 

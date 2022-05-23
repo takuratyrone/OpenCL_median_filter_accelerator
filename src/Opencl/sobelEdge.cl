@@ -29,7 +29,7 @@ __kernel void sobel_filter_kernel(__read_only image2d_t iimage,
     }
     //gradient and gradient is the image gradient in X and Y axes.
     //Now compute the gradient magnitude
-    printf("Gradient: %f\n", gradientX);
+    //printf("Gradient: %f\n", gradientX);
     computedGradient = sqrt(gradientX*gradientX + gradientY*gradientY);
     //printf("Gradient: %f\n", computedGradient);
     write_imagef(oimage, (int2)(x, y), (computedGradient));

@@ -18,7 +18,7 @@ using namespace std;
 void displayImageInt(int* in, int cols, int rows)
 
 {
-	ofstream myFile("medianFilterOutput.pgm");
+	ofstream myFile("Medianfilter.pgm");
 	myFile << "P2" << endl;
 	myFile << "# written by group 15" << endl;
 	myFile << cols << " " << rows << endl;
@@ -58,7 +58,7 @@ int main(void)
 	unsigned int resHeight;
 	unsigned int maxValue;
 
-	ifstream infile("p2noisy.pgm");
+	ifstream infile("glassware_noisy.ascii.pgm");
 	stringstream ss;
 	string inputLine = "";
 
@@ -293,7 +293,7 @@ int main(void)
 	end = clock(); //data transfer overhead
 	//start = clock();  //data processing 
 	cl_int err4 = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &local_size, 0, NULL, NULL); 
-	system("nvidia-smi");
+	//system("nvidia-smi");
 	
 
 	printf("\nKernel check: %i \n",err4);
