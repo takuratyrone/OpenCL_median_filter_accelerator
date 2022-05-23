@@ -32,7 +32,7 @@ int main()
 
 	start = clock();
 	int window[9],row = 0, col = 0, numrows = 0, numcols = 0,MAX=0;
-	ifstream infile("p2noisy.pgm");
+	ifstream infile("glassware_noisy.pgm");
 	stringstream ss;
 	string inputLine = "";
 
@@ -95,7 +95,7 @@ int main()
 		}
 	}
 	//system("free -t -m");
-	system("upower --monitor-detail");
+	//system("upower --monitor-detail");
 
 	ofstream outfile;
 
@@ -103,7 +103,7 @@ int main()
 	printf("Run Time: %0.8f sec \n",((float) end - start)/CLOCKS_PER_SEC);
 	
 	//new file open to store the output image
-	outfile.open("Medianfilter.pnm");
+	outfile.open("output/Medianfilter.pgm");
 	outfile<<"P2"<<endl;
 	outfile<<numcols<<" "<<numrows<<endl;
 	outfile<<"255"<<endl;

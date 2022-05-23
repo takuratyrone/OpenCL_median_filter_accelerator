@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char*argv[])
 {
-std::string inputPGMFile = "SobelXYImage.pgm";
+std::string inputPGMFile = "images/SobelXYImage.pgm";
 	int largeWidth, largeHeight;
 
 	//read the input image dimensions
@@ -74,7 +74,7 @@ int** extract(int largeWidth, int largeHeight, std::ifstream& imageFile ) //retu
 
 void write(int ** imageSequence,int largeWidth, int largeHeight)
 {
-		{	std::string zita ="p2noisy.pgm";
+		{	std::string zita ="output/sobelEdge.pgm";
 			std::ofstream creatMyFile(zita, std::ios::out | std::ios::binary); //creation of a single file name "name_xxxx" the frame as pgm file.
 			//writing the comments and pgm description;
 
