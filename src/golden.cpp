@@ -32,7 +32,7 @@ int main()
 
 	start = clock();
 	int window[9],row = 0, col = 0, numrows = 0, numcols = 0,MAX=0;
-	ifstream infile("sloan_image.pgm");
+	ifstream infile("p2noisy.pgm");
 	stringstream ss;
 	string inputLine = "";
 
@@ -94,6 +94,8 @@ int main()
 			arr[row][col]=window[4];
 		}
 	}
+	//system("free -t -m");
+	system("upower --monitor-detail");
 
 	ofstream outfile;
 

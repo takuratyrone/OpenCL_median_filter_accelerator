@@ -18,7 +18,7 @@ void sort(int *a, int *b, int *c) {
 }
 
 
-__kernel void median_filter(__global float* inImage, __global float* outImage, int width, int height)
+__kernel void median_filter(__global int* inImage, __global int* output, int width, int height)
 {
     int workItemNum = get_global_id(0);
     int workGroupNum = get_group_id(0);
@@ -29,16 +29,16 @@ __kernel void median_filter(__global float* inImage, __global float* outImage, i
     int posx = workItemNum;
     int posy = workGroupNum;
 
-    int i = width*posx + posy;
-
+    uint i = width*posy + workItemNum%width;
+    //printf("i = %d\n", i);
     
     
     //printf("hello world\n");
 
     //printf("WorkItem: %d WorkGroup: %d\n", posx, posy);
-    if ((posx == 0) || (posy == 0) || (posx == width-1) || (posy == height-1)) {
+    if ((posx%width == 0) || (posy == 0) || (posx == width-1) || (posy == height-1)) {
         //printf("WorkItem: %d WorkGroup: %d\n", posx, posy);
-        outImage[i] = inImage[i];
+        output[i] = inImage[i];
 
     }
     else {
@@ -54,6 +54,9 @@ __kernel void median_filter(__global float* inImage, __global float* outImage, i
         pix7 = inImage[i + width];
         pix8 = inImage[i + 1 + width];
 
+        //printf("i = %d\n", i);
+        //printf("pixels  %d  %d   %d  %d  %d  %d  %d  %d  %d  %d   %d   %d  %d  %d  %d  %d  %d  %d  %d\n", i, i-1-width, i-width, i+1-width, i-1, i, i+1, i-1+width, i+width, i+1+width, pix0, pix1, pix2, pix3, pix4, pix5, pix6, pix7, pix8);
+
         //sort the rows
         sort( &(pix0), &(pix1), &(pix2) );
         sort( &(pix3), &(pix4), &(pix5) );
@@ -65,8 +68,8 @@ __kernel void median_filter(__global float* inImage, __global float* outImage, i
         //sort the diagonal
         sort( &(pix0), &(pix4), &(pix8) );
         // median is the the middle value of the diagonal
-        outImage[i] = pix4;
-        printf("Pixel 4: %d\n", pix4);
+        output[i] = pix4;
+        //printf("Pixel 4: %d     %d\n", output[i],i);
     }
 
 }
