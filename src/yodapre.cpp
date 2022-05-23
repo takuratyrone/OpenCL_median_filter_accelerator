@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char*argv[])
 {
-std::string inputPGMFile = "images/128px.pgm";
+std::string inputPGMFile = "SobelXYImage.pgm";
 	int largeWidth, largeHeight;
 
 	//read the input image dimensions
